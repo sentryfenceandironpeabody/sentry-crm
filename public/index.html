@@ -1107,10 +1107,15 @@ input:focus, select:focus, textarea:focus { outline: none; }
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Quick Add
       </button>
+      <button class="btn btn-gold btn-sm" onclick="EstimateScanner.start()" title="Snap a photo of a handwritten estimate to auto-create a quote card">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Scan Estimate
+      </button>
       <button class="btn btn-primary btn-sm" onclick="App.openModal('newJob')">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         New Lead
       </button>
+      <input type="file" id="estimateFileInput" accept="image/*" capture="environment" style="display:none;" onchange="EstimateScanner.handleFile(event)" />
     </header>
 
     <div class="content" id="content"></div>
@@ -2579,7 +2584,7 @@ const Views = {
     return `
       <div class="job-card priority-${j.priority}" draggable="true" data-job="${j.id}" ondragstart="Views.handleDragStart(event, '${j.id}')" ondragend="Views.handleDragEnd(event)" onclick='Views.openJobDetail("${j.id}")'>
         <div class="job-card-top">
-          <div class="job-card-name">${escHtml(j.customerName)}</div>
+          <div class="job-card-name">${escHtml(j.customerName)} ${j.estimateImage ? `<svg style="display:inline;width:11px;height:11px;color:var(--gold);vertical-align:-1px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>` : ''}</div>
           <div class="job-card-value">${fmt.money(j.totalValue)}</div>
         </div>
         <div class="job-card-meta">
@@ -2592,6 +2597,7 @@ const Views = {
           ${isUrgent ? `<span class="job-tag urgent">URGENT</span>` : ''}
           ${crew ? `<span class="job-tag crew">${escHtml(crew.name.split(' ')[0])}</span>` : ''}
           ${j.scheduledDate ? `<span class="job-tag scheduled">SCHED</span>` : ''}
+          ${j.estimateImage ? `<span class="job-tag" style="background:rgba(197,160,89,.18);color:var(--gold-deep);">SCANNED</span>` : ''}
         </div>
         ${j.tasks?.length ? `<div class="job-progress"><div class="job-progress-bar" style="width:${Math.round(taskProgress * 100)}%"></div></div>` : ''}
       </div>
@@ -3726,6 +3732,17 @@ const Modals = {
                   </div>
                 </div>
 
+                ${j.estimateImage ? `
+                <div class="detail-section">
+                  <h3>${ICON.doc} Original Handwritten Estimate</h3>
+                  <div style="background:var(--cream);border:1px solid var(--line);border-radius:var(--radius);padding:8px;position:relative;">
+                    <img src="${j.estimateImage}" alt="Original estimate"
+                         style="width:100%;height:auto;border-radius:6px;display:block;cursor:zoom-in;"
+                         onclick="window.open(this.src, '_blank')" />
+                    <div style="position:absolute;top:14px;right:14px;background:rgba(15,23,42,.8);color:#fff;font-size:9px;padding:4px 8px;border-radius:6px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;">Click to enlarge</div>
+                  </div>
+                </div>` : ''}
+
                 <div class="detail-section">
                   <h3>${ICON.task} Project Tasks</h3>
                   <div class="task-list">
@@ -4158,6 +4175,186 @@ const Modals = {
 
   afterOpen(type, payload) {
     if (type === 'estimateBuilder') Modals.recalc();
+  },
+};
+
+/* ========== ESTIMATE SCANNER ========== */
+const EstimateScanner = {
+  // Trigger native file picker (camera roll on iOS)
+  start() {
+    const input = document.getElementById('estimateFileInput');
+    if (input) { input.value = ''; input.click(); }
+  },
+
+  // Compress image client-side: max 1400px long edge, 70% JPEG quality
+  compress(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('Could not read file'));
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onerror = () => reject(new Error('Could not decode image'));
+        img.onload = () => {
+          const MAX = 1400;
+          let w = img.width, h = img.height;
+          if (w > h && w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+          else if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          // White background in case the image has transparency
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, w, h);
+          ctx.drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', 0.7));
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  },
+
+  async handleFile(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    this.showProgress('Compressing image…');
+
+    let dataUrl;
+    try {
+      dataUrl = await this.compress(file);
+    } catch (e) {
+      this.hideProgress();
+      toast('Image compress failed: ' + e.message, 'error');
+      return;
+    }
+
+    this.showProgress('Reading handwriting with AI… (≈3s)');
+
+    let result;
+    try {
+      const resp = await fetch('/api/scan-estimate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: dataUrl }),
+      });
+      result = await resp.json();
+      if (!resp.ok || !result.success) {
+        throw new Error(result.message || ('HTTP ' + resp.status));
+      }
+    } catch (e) {
+      this.hideProgress();
+      toast('AI scan failed: ' + e.message, 'error');
+      return;
+    }
+
+    this.hideProgress();
+    this.openConfirm(result.data, dataUrl);
+  },
+
+  showProgress(message) {
+    const host = document.getElementById('modal-host');
+    host.innerHTML = `
+      <div class="modal-backdrop" style="z-index:120;">
+        <div class="modal modal-sm" onclick="event.stopPropagation()" style="max-width:380px;">
+          <div class="modal-body" style="padding:32px;text-align:center;">
+            <div style="width:48px;height:48px;margin:0 auto 18px;border:3px solid var(--cream-2);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;"></div>
+            <div style="font-size:14px;font-weight:600;color:var(--navy);">${escHtml(message)}</div>
+            <div style="font-size:11px;color:var(--ink-faint);margin-top:6px;letter-spacing:.05em;">Sentry Fence AI Scanner</div>
+          </div>
+        </div>
+      </div>
+      <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+    `;
+  },
+
+  hideProgress() {
+    document.getElementById('modal-host').innerHTML = '';
+  },
+
+  // Show parsed fields with image preview, let user edit before saving
+  openConfirm(data, imageDataUrl) {
+    // Stash so saveScanned can pull from it
+    this._pending = { data, imageDataUrl };
+
+    const host = document.getElementById('modal-host');
+    host.innerHTML = `
+      <div class="modal-backdrop" onclick="App.closeModal()">
+        <div class="modal modal-lg" onclick="event.stopPropagation()">
+          <div class="modal-head">
+            <div>
+              <h2>Review Scanned Estimate</h2>
+              <div class="sub">AI extracted these fields — edit anything that's off, then save</div>
+            </div>
+            <button class="modal-close" onclick="App.closeModal()">${ICON.x}</button>
+          </div>
+          <div class="modal-body">
+            <div style="display:grid;grid-template-columns:1fr 1.2fr;gap:18px;align-items:start;">
+              <div>
+                <div style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-faint);font-weight:700;margin-bottom:8px;">Original Estimate</div>
+                <div style="background:var(--cream);border:1px solid var(--line);border-radius:var(--radius);padding:6px;">
+                  <img src="${imageDataUrl}" style="width:100%;height:auto;border-radius:6px;display:block;" />
+                </div>
+                <div style="font-size:11px;color:var(--ink-muted);margin-top:8px;line-height:1.5;">
+                  This image will be attached to the card so the install crew can reference the original handwritten notes and diagram.
+                </div>
+              </div>
+              <div>
+                <div class="form-grid">
+                  <div class="field"><label>Customer Name</label><input id="scnName" value="${escHtml(data.customerName||'')}"/></div>
+                  <div class="field"><label>Phone</label><input id="scnPhone" value="${escHtml(data.phone||'')}" oninput="this.value=fmt.phone(this.value)" maxlength="14"/></div>
+                  <div class="field full"><label>Email</label><input id="scnEmail" value="${escHtml(data.email||'')}" type="email"/></div>
+                  <div class="field"><label>Address</label><input id="scnAddress" value="${escHtml(data.address||'')}"/></div>
+                  <div class="field"><label>Town</label><input id="scnTown" value="${escHtml(data.town||'')}"/></div>
+                  <div class="field"><label>Service Type</label>
+                    <select id="scnService">
+                      ${SERVICES.map(s => `<option ${data.serviceType===s?'selected':''}>${s}</option>`).join('')}
+                      ${!SERVICES.includes(data.serviceType) && data.serviceType ? `<option selected>${escHtml(data.serviceType)}</option>` : ''}
+                    </select>
+                  </div>
+                  <div class="field"><label>Total Value ($)</label><input id="scnTotal" type="number" value="${data.totalValue||0}"/></div>
+                  <div class="field"><label>Linear Feet</label><input id="scnLF" type="number" value="${data.linearFeet||0}"/></div>
+                  <div class="field"><label>Gate Count</label><input id="scnGates" type="number" value="${data.gateCount||0}"/></div>
+                  <div class="field full"><label>Work Description</label><textarea id="scnDesc" style="min-height:90px;">${escHtml(data.description||'')}</textarea></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-foot">
+            <button class="btn btn-ghost" onclick="App.closeModal()">Cancel</button>
+            <button class="btn btn-gold" onclick="EstimateScanner.saveScanned()">${ICON.check} Save to Quote Sent</button>
+          </div>
+        </div>
+      </div>
+    `;
+  },
+
+  saveScanned() {
+    if (!this._pending) return;
+    const total = Number(document.getElementById('scnTotal').value) || 0;
+    const data = {
+      customerName: document.getElementById('scnName').value.trim() || 'Unknown Customer',
+      phone: document.getElementById('scnPhone').value.trim(),
+      email: document.getElementById('scnEmail').value.trim(),
+      address: document.getElementById('scnAddress').value.trim(),
+      town: document.getElementById('scnTown').value.trim(),
+      serviceType: document.getElementById('scnService').value,
+      priority: 'Medium',
+      status: 'Quote Sent',
+      linearFeet: Number(document.getElementById('scnLF').value) || 0,
+      gateCount: Number(document.getElementById('scnGates').value) || 0,
+      estimatedValue: total,
+      totalValue: total,
+      materialCost: Math.round(total * 0.42),
+      laborCost: Math.round(total * 0.28),
+      description: document.getElementById('scnDesc').value,
+      estimateImage: this._pending.imageDataUrl,  // base64 PNG/JPEG
+      scannedAt: Date.now(),
+    };
+    App.saveJob(data);
+    this._pending = null;
+    App.closeModal();
+    toast('Scanned estimate saved to Quote Sent.', 'success');
   },
 };
 
