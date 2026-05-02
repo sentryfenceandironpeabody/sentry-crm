@@ -1,0 +1,12 @@
+{
+  "name": "sentry-crm-pro",
+  "version": "1.0.0",
+  "description": "Sentry Fence Company — CRM Pro production deployment (Vercel + Firebase)",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.6.0"
+  }
+}

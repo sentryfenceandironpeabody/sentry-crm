@@ -1,0 +1,36 @@
+rules_version = '2';
+
+// =====================================================================
+// Sentry Fence CRM — Firestore Security Rules
+// Deploy these in Firebase Console → Firestore Database → Rules tab,
+// or via CLI: firebase deploy --only firestore:rules
+// =====================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // App state document — single source of truth for jobs, customers,
+    // crew, materials, invoices, settings, activity feed.
+    // Any signed-in user can read & write (signed-in = passed login API).
+    match /appState/{doc} {
+      allow read:  if request.auth != null;
+      allow write: if request.auth != null;
+    }
+
+    // Login audit log — records EVERY sign-in attempt (success and fail).
+    // - create: open to anyone, so failed-attempt forensics still log.
+    // - read/update/delete: Admin only (custom claim set via login API).
+    match /loginLog/{entry} {
+      allow create: if true;
+      allow read:   if request.auth != null
+                    && request.auth.token.roleKey == 'admin';
+      allow update, delete: if request.auth != null
+                    && request.auth.token.roleKey == 'admin';
+    }
+
+    // Default deny — anything not explicitly allowed is rejected.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
