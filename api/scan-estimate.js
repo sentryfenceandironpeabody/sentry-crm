@@ -56,7 +56,7 @@ module.exports = async (req, res) => {
       'Return ONLY valid JSON matching the schema. No markdown, no commentary.'
     ].join('\n');
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     const reqBody = {
       contents: [{
