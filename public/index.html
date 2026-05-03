@@ -3954,8 +3954,8 @@ const Modals = {
                   <div style="background:var(--cream);border:1px solid var(--line);border-radius:var(--radius);padding:8px;position:relative;">
                     <img src="${j.estimateImage}" alt="Original estimate"
                          style="width:100%;height:auto;border-radius:6px;display:block;cursor:zoom-in;"
-                         onclick="window.open(this.src, '_blank')" />
-                    <div style="position:absolute;top:14px;right:14px;background:rgba(15,23,42,.8);color:#fff;font-size:9px;padding:4px 8px;border-radius:6px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;">Click to enlarge</div>
+                         onclick="Modals.openLightbox('${j.id}')" />
+                    <div style="position:absolute;top:14px;right:14px;background:rgba(15,23,42,.8);color:#fff;font-size:9px;padding:4px 8px;border-radius:6px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;pointer-events:none;">Tap to enlarge</div>
                   </div>
                 </div>` : ''}
 
@@ -4196,6 +4196,40 @@ const Modals = {
       laborCost: Math.round(sub * lp / 100),
     });
     App.closeModal();
+  },
+
+  // Full-screen image viewer (replaces window.open which iOS Safari blocks for data: URLs)
+  openLightbox(jobId) {
+    const job = State.jobs.find(j => j.id === jobId);
+    if (!job || !job.estimateImage) return;
+    const host = document.getElementById('modal-host');
+    // Stash the underlying job-detail modal HTML so we can restore it
+    this._lightboxRestore = host.innerHTML;
+    host.innerHTML = `
+      <div class="modal-backdrop" style="background:rgba(0,0,0,.92);padding:0;z-index:200;" onclick="Modals.closeLightbox()">
+        <div onclick="event.stopPropagation()" style="position:relative;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;padding:8px;box-sizing:border-box;">
+          <img src="${job.estimateImage}" alt="${escHtml(job.customerName)} estimate"
+               style="max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.6);" />
+          <button onclick="Modals.closeLightbox()" aria-label="Close"
+                  style="position:absolute;top:max(14px, env(safe-area-inset-top));right:max(14px, env(safe-area-inset-right));width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.95);color:var(--navy);display:grid;place-items:center;border:none;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.4);">
+            <svg style="width:22px;height:22px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <div style="position:absolute;bottom:max(20px, env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:rgba(0,0,0,.75);color:#fff;padding:8px 16px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.05em;backdrop-filter:blur(8px);">
+            ${escHtml(job.customerName)} · ${escHtml(job.address)}, ${escHtml(job.town)}
+          </div>
+        </div>
+      </div>
+    `;
+  },
+
+  closeLightbox() {
+    const host = document.getElementById('modal-host');
+    if (this._lightboxRestore !== undefined) {
+      host.innerHTML = this._lightboxRestore;
+      this._lightboxRestore = undefined;
+    } else {
+      host.innerHTML = '';
+    }
   },
 
   printEstimate(j) {
