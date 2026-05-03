@@ -1122,6 +1122,130 @@ input:focus, select:focus, textarea:focus { outline: none; }
   font-size: 13px;
 }
 
+/* ===== INVENTORY MANAGEMENT ===== */
+.inv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 14px;
+}
+.inv-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow .15s ease;
+}
+.inv-card:hover { box-shadow: var(--shadow-md); }
+.inv-card-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.inv-card-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--navy);
+  line-height: 1.25;
+  word-break: break-word;
+}
+.inv-card-sub {
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 700;
+  margin-top: 3px;
+}
+.inv-stock-section { margin-bottom: 14px; }
+.inv-stock-section .micro-label { display: block; margin-bottom: 6px; }
+.inv-stock-row {
+  display: flex;
+  gap: 4px;
+  align-items: stretch;
+}
+.inv-step {
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  width: 36px;
+  min-width: 36px;
+  height: 38px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--navy);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  transition: all .12s ease;
+}
+.inv-step:hover { background: var(--gold); color: var(--navy); border-color: var(--gold); }
+.inv-step:active { transform: scale(0.94); }
+.inv-step svg { width: 14px; height: 14px; }
+.inv-stock-input {
+  flex: 1;
+  border: 1.5px solid var(--gold);
+  border-radius: 8px;
+  background: #fff;
+  font-size: 18px;
+  font-weight: 800;
+  text-align: center;
+  color: var(--navy);
+  padding: 6px 4px;
+  font-variant-numeric: tabular-nums;
+  outline: none;
+  min-width: 60px;
+}
+.inv-stock-input:focus { box-shadow: 0 0 0 3px rgba(197,160,89,.15); }
+.inv-unit {
+  border: 1px solid var(--line);
+  background: var(--cream);
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--navy);
+  padding: 0 8px;
+  flex-shrink: 0;
+  cursor: pointer;
+  letter-spacing: .05em;
+  outline: none;
+}
+.inv-grid-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 12px;
+  margin-bottom: 14px;
+}
+.inv-grid-fields .field input { font-size: 14px; padding: 8px 10px; }
+.inv-total {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--navy);
+  font-variant-numeric: tabular-nums;
+  padding: 8px 10px;
+  background: var(--cream);
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  text-align: center;
+}
+.inv-card-foot {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 8px;
+  border-top: 1px solid var(--line-soft);
+}
+
+@media (max-width: 700px) {
+  .inv-grid { grid-template-columns: 1fr; }
+  .inv-step { width: 34px; height: 34px; font-size: 10px; }
+  .inv-stock-input { font-size: 16px; }
+  .inv-unit { font-size: 10px; padding: 0 6px; }
+}
+
 /* ===== HAMBURGER (mobile only) ===== */
 .hamburger {
   display: none;
@@ -1524,7 +1648,10 @@ const ICON = {
   monitor: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
   globe: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
   eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
-  eyeOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'
+  eyeOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>',
+  warehouse: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V8.5L12 3l9 5.5V21h-6v-7H9v7H3z"/><line x1="9" y1="14" x2="15" y2="14"/></svg>',
+  plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+  minus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg>'
 };
 
 /* ========== STATE ========== */
@@ -2190,7 +2317,7 @@ const App = {
   },
 
   allowedViews() {
-    const all = ['dashboard','pipeline','calendar','map','customers','estimates','invoices','crew','materials','analytics','settings','users'];
+    const all = ['dashboard','pipeline','calendar','map','customers','estimates','invoices','crew','materials','inventory','analytics','settings','users'];
     if (State.auth.roleKey === 'admin') return all;
     return ['dashboard','pipeline','calendar','map','customers','estimates','invoices','crew','materials','analytics'];
   },
@@ -2223,6 +2350,7 @@ const App = {
       { id: 'invoices', label: 'Invoices', icon: 'invoices', badge: State.invoices.filter(i => i.status !== 'paid').length, adminOnly: false },
       { id: 'crew', label: 'Crew', icon: 'crew', adminOnly: false },
       { id: 'materials', label: 'Materials', icon: 'materials', badge: State.materials.filter(m => m.stock < m.reorder).length || null, adminOnly: false },
+      { id: 'inventory', label: 'Inventory Mgmt', icon: 'warehouse', adminOnly: true },
       { id: 'analytics', label: 'Analytics', icon: 'analytics', adminOnly: false },
       { id: 'users', label: 'User Management', icon: 'shield', adminOnly: true, badge: State.loginLog.filter(l => l.success && Date.now() - l.timestamp < 86400000).length || null },
       { id: 'settings', label: 'Settings', icon: 'settings', adminOnly: true },
@@ -2267,6 +2395,7 @@ const App = {
       invoices: ['Invoices', 'Billing'],
       crew: ['Crew', 'Team'],
       materials: ['Materials', 'Inventory'],
+      inventory: ['Inventory Management', 'Stock & Costs'],
       analytics: ['Analytics', 'Reports'],
       users: ['User Management', 'Security'],
       settings: ['Settings', 'Configuration'],
@@ -2297,6 +2426,7 @@ const App = {
       case 'invoices': C.innerHTML = Views.invoices(); break;
       case 'crew': C.innerHTML = Views.crew(); break;
       case 'materials': C.innerHTML = Views.materials(); break;
+      case 'inventory': C.innerHTML = Views.inventory(); break;
       case 'analytics': C.innerHTML = Views.analytics(); Views.afterAnalytics(); break;
       case 'users': C.innerHTML = Views.userManagement(); Views.afterUserManagement(); break;
       case 'settings': C.innerHTML = Views.settings(); break;
@@ -2508,6 +2638,62 @@ const App = {
     this.renderNav();
     this.render();
     toast('Material saved.');
+  },
+
+  // Inline edit single material field (used by Inventory Management)
+  updateMaterial(id, field, value) {
+    if (State.auth.roleKey !== 'admin') { toast('Admin only.', 'error'); return; }
+    const m = State.materials.find(m => m.id === id);
+    if (!m) return;
+    if (field === 'stock' || field === 'reorder') value = Math.max(0, Math.round(Number(value) || 0));
+    if (field === 'cost') value = Math.max(0, parseFloat(Number(value).toFixed(2)) || 0);
+    m[field] = value;
+    m._updatedAt = Date.now();
+    persist();
+    this.renderNav(); // update low-stock badge in nav
+    // Re-render only the KPI strip + that one card to preserve focus
+    this._refreshInventoryStats();
+  },
+
+  adjustStock(id, delta) {
+    if (State.auth.roleKey !== 'admin') return;
+    const m = State.materials.find(m => m.id === id);
+    if (!m) return;
+    m.stock = Math.max(0, (Number(m.stock) || 0) + delta);
+    m._updatedAt = Date.now();
+    persist();
+    this.renderNav();
+    this.render();
+  },
+
+  deleteMaterial(id) {
+    if (State.auth.roleKey !== 'admin') return;
+    const m = State.materials.find(m => m.id === id);
+    if (!m) return;
+    if (!confirm(`Delete "${m.name}" from inventory? This cannot be undone.`)) return;
+    State.materials = State.materials.filter(x => x.id !== id);
+    logActivity('material_deleted', `Removed ${m.name} from inventory`);
+    persist();
+    this.renderNav();
+    this.render();
+    toast(`Removed ${m.name}.`);
+  },
+
+  _refreshInventoryStats() {
+    // Update KPI tiles + per-card status without full re-render (keeps inputs focused)
+    const stats = document.getElementById('invStats');
+    if (stats && Views.inventoryStats) stats.innerHTML = Views.inventoryStats();
+    State.materials.forEach(m => {
+      const valEl = document.getElementById('invVal_' + m.id);
+      if (valEl) valEl.textContent = fmt.money((Number(m.stock)||0) * (Number(m.cost)||0));
+      const stEl = document.getElementById('invStatus_' + m.id);
+      if (stEl) {
+        const status = m.stock < m.reorder ? 'overdue' : m.stock < m.reorder * 1.5 ? 'sent' : 'paid';
+        const label = m.stock < m.reorder ? 'Reorder' : m.stock < m.reorder * 1.5 ? 'Low' : 'Healthy';
+        stEl.className = 'doc-status ' + status;
+        stEl.textContent = label;
+      }
+    });
   },
 
   saveCustomer(data) {
@@ -3669,6 +3855,125 @@ const Views = {
           ${!filteredMats.length ? `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--ink-faint);">No materials match your search.</td></tr>` : ''}
         </tbody>
       </table>
+    `;
+  },
+
+  /* INVENTORY MANAGEMENT (Admin only) */
+  inventoryStats() {
+    const mats = State.materials;
+    const totalItems = mats.length;
+    const totalValue = mats.reduce((a, m) => a + (Number(m.stock)||0) * (Number(m.cost)||0), 0);
+    const needReorder = mats.filter(m => m.stock < m.reorder).length;
+    const suppliers = new Set(mats.map(m => m.supplier).filter(Boolean)).size;
+    return `
+      ${this.kpi('Total SKUs', totalItems, 'items in inventory', 'up', 'materials')}
+      ${this.kpi('Inventory Value', fmt.money(totalValue), 'sum of stock × cost', 'up', 'dollar')}
+      ${this.kpi('Need Reorder', needReorder, needReorder ? 'below threshold' : 'all healthy', needReorder ? 'down' : 'up', 'alert')}
+      ${this.kpi('Suppliers', suppliers, 'active vendors', 'up', 'briefcase')}
+    `;
+  },
+
+  inventory() {
+    const term = (State.filter.search || '').toLowerCase();
+    const allMats = State.materials;
+    const mats = !term ? allMats : allMats.filter(m =>
+      ((m.name||'') + ' ' + (m.supplier||'') + ' ' + (m.unit||'')).toLowerCase().includes(term)
+    );
+
+    return `
+      <div class="page-head">
+        <div>
+          <h1>Inventory Management</h1>
+          <p>Adjust stock counts, reorder thresholds, and unit costs in real time. Changes save automatically and sync across all signed-in devices.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary btn-sm" onclick="App.openModal('newMaterial')">${ICON.materials} Add Material</button>
+        </div>
+      </div>
+
+      ${this.searchBar('Search inventory by item, supplier, or unit…', mats.length, allMats.length)}
+
+      <div class="kpi-grid" id="invStats" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));">
+        ${this.inventoryStats()}
+      </div>
+
+      ${mats.length === 0 ? `<div class="empty-state">${term ? `No materials match "${escHtml(State.filter.search)}".` : 'No materials yet — click "Add Material" to start tracking inventory.'}</div>` : `
+        <div class="inv-grid">
+          ${mats.map(m => this.inventoryCard(m)).join('')}
+        </div>
+      `}
+    `;
+  },
+
+  inventoryCard(m) {
+    const stock = Number(m.stock) || 0;
+    const reorder = Number(m.reorder) || 0;
+    const cost = Number(m.cost) || 0;
+    const totalValue = stock * cost;
+    const status = stock < reorder ? 'overdue' : stock < reorder * 1.5 ? 'sent' : 'paid';
+    const statusLabel = stock < reorder ? 'Reorder' : stock < reorder * 1.5 ? 'Low' : 'Healthy';
+    const lowness = stock < reorder ? 'critical' : stock < reorder * 1.5 ? 'low' : '';
+    const ratio = Math.min(100, (stock / Math.max(reorder * 2, 1)) * 100);
+    const updated = m._updatedAt ? fmt.rel(m._updatedAt) : '—';
+    const units = ['EA','LF','BAG','BOX','ROLL','SHEET','GAL','LB'];
+
+    return `
+      <div class="inv-card" id="invCard_${m.id}">
+        <div class="inv-card-head">
+          <div style="flex:1;min-width:0;">
+            <div class="inv-card-name">${escHtml(m.name)}</div>
+            <div class="inv-card-sub">Updated ${updated}</div>
+          </div>
+          <span class="doc-status ${status}" id="invStatus_${m.id}">${statusLabel}</span>
+        </div>
+
+        <div class="inv-stock-section">
+          <label class="micro-label">Current Stock</label>
+          <div class="inv-stock-row">
+            <button class="inv-step" onclick="App.adjustStock('${m.id}', -10)" title="-10">−10</button>
+            <button class="inv-step" onclick="App.adjustStock('${m.id}', -1)">${ICON.minus}</button>
+            <input type="number" min="0" step="1" class="inv-stock-input"
+                   value="${stock}"
+                   onchange="App.updateMaterial('${m.id}', 'stock', this.value)" />
+            <button class="inv-step" onclick="App.adjustStock('${m.id}', 1)">${ICON.plus}</button>
+            <button class="inv-step" onclick="App.adjustStock('${m.id}', 10)" title="+10">+10</button>
+            <select class="inv-unit"
+                    onchange="App.updateMaterial('${m.id}', 'unit', this.value)">
+              ${units.map(u => `<option value="${u}" ${m.unit === u ? 'selected' : ''}>${u}</option>`).join('')}
+            </select>
+          </div>
+          <div class="stock-bar" style="margin-top:8px;">
+            <div class="stock-fill ${lowness}" style="width:${ratio}%"></div>
+          </div>
+        </div>
+
+        <div class="inv-grid-fields">
+          <div class="field">
+            <label>Reorder At</label>
+            <input type="number" min="0" step="1" value="${reorder}"
+                   onchange="App.updateMaterial('${m.id}', 'reorder', this.value)" />
+          </div>
+          <div class="field">
+            <label>Unit Cost ($)</label>
+            <input type="number" min="0" step="0.01" value="${cost.toFixed(2)}"
+                   onchange="App.updateMaterial('${m.id}', 'cost', this.value)" />
+          </div>
+          <div class="field">
+            <label>Supplier</label>
+            <input type="text" value="${escHtml(m.supplier || '')}"
+                   onchange="App.updateMaterial('${m.id}', 'supplier', this.value)"
+                   placeholder="Vendor name" />
+          </div>
+          <div class="field">
+            <label>Total Value</label>
+            <div class="inv-total" id="invVal_${m.id}">${fmt.money(totalValue)}</div>
+          </div>
+        </div>
+
+        <div class="inv-card-foot">
+          <button class="btn btn-danger btn-sm" onclick="App.deleteMaterial('${m.id}')">${ICON.trash} Remove</button>
+        </div>
+      </div>
     `;
   },
 
