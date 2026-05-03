@@ -1202,15 +1202,60 @@ input:focus, select:focus, textarea:focus { outline: none; }
     padding: 11px 12px;
   }
 
-  /* Tables: horizontal scroll wrapper */
+  /* Tables: convert each row to a card on mobile */
   .tbl {
     display: block;
-    overflow-x: auto;
-    white-space: nowrap;
-    -webkit-overflow-scrolling: touch;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    overflow: visible;
   }
-  .tbl thead, .tbl tbody, .tbl tr { display: table; width: 100%; table-layout: fixed; }
-  .tbl thead th, .tbl tbody td { font-size: 12px; padding: 10px 12px; }
+  .tbl thead { display: none; }
+  .tbl tbody { display: block; }
+  .tbl tr {
+    display: block;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    margin-bottom: 10px;
+    padding: 12px 14px;
+    box-shadow: var(--shadow-sm);
+  }
+  .tbl tr:hover { background: #fff; }
+  .tbl td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0 !important;
+    border-bottom: 1px dashed var(--line-soft) !important;
+    font-size: 12px;
+    text-align: right;
+    min-height: 0;
+    white-space: normal;
+    word-break: break-word;
+  }
+  .tbl td:last-child { border-bottom: none !important; }
+  .tbl td::before {
+    content: attr(data-label);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    text-align: left;
+    flex-shrink: 0;
+    align-self: flex-start;
+    padding-top: 3px;
+  }
+  /* Cells without a label (action buttons) span full width */
+  .tbl td:not([data-label]) {
+    justify-content: flex-end;
+    padding-top: 8px !important;
+  }
+  .tbl td:not([data-label])::before { display: none; }
+  /* Stat-row inner content shouldn't have width constraints */
+  .tbl td > div, .tbl td > span { max-width: 65%; }
 
   /* Calendar: tighter cells */
   .cal-day { min-height: 64px; padding: 4px; }
@@ -3235,7 +3280,7 @@ const Views = {
         <tbody>
           ${filtered.map(c => `
             <tr style="cursor:pointer;" onclick='Views.openCustomer("${c.id}")'>
-              <td>
+              <td data-label="Customer">
                 <div style="display:flex;align-items:center;gap:10px;">
                   <div class="user-avatar" style="background:var(--cream-2);color:var(--navy);border-color:var(--line);">${escHtml(c.name.charAt(0))}</div>
                   <div>
@@ -3244,17 +3289,17 @@ const Views = {
                   </div>
                 </div>
               </td>
-              <td>
+              <td data-label="Contact">
                 <div style="font-size:12px;">${escHtml(c.phone)}</div>
                 <div style="font-size:11px;color:var(--ink-muted);">${escHtml(c.email)}</div>
               </td>
-              <td>
+              <td data-label="Address">
                 <div style="font-size:12px;">${escHtml(c.address)}</div>
                 <div style="font-size:11px;color:var(--ink-muted);">${escHtml(c.town)}</div>
               </td>
-              <td><span style="font-weight:700;">${c.jobs}</span></td>
-              <td style="font-weight:800;color:var(--navy);font-variant-numeric:tabular-nums;">${fmt.money(c.totalValue)}</td>
-              <td>
+              <td data-label="Jobs"><span style="font-weight:700;">${c.jobs}</span></td>
+              <td data-label="Lifetime Value" style="font-weight:800;color:var(--navy);font-variant-numeric:tabular-nums;">${fmt.money(c.totalValue)}</td>
+              <td data-label="Status">
                 <span class="doc-status ${c.status === 'active' ? 'sent' : 'draft'}">${escHtml(c.status)}</span>
               </td>
             </tr>
@@ -3380,13 +3425,13 @@ const Views = {
         <tbody>
           ${inv.map(i => `
             <tr>
-              <td><span style="font-weight:700;color:var(--navy);">${escHtml(i.number)}</span></td>
-              <td>${escHtml(i.customer)}</td>
-              <td style="color:var(--ink-muted);">${fmt.date(i.issued)}</td>
-              <td style="color:var(--ink-muted);">${fmt.date(i.due)}</td>
-              <td style="font-weight:700;font-variant-numeric:tabular-nums;">${fmt.money(i.amount)}</td>
-              <td style="font-weight:700;font-variant-numeric:tabular-nums;color:${i.balance > 0 ? 'var(--amber)' : 'var(--green)'};">${fmt.money(i.balance)}</td>
-              <td><span class="doc-status ${i.status}">${escHtml(i.status)}</span></td>
+              <td data-label="Number"><span style="font-weight:700;color:var(--navy);">${escHtml(i.number)}</span></td>
+              <td data-label="Customer">${escHtml(i.customer)}</td>
+              <td data-label="Issued" style="color:var(--ink-muted);">${fmt.date(i.issued)}</td>
+              <td data-label="Due" style="color:var(--ink-muted);">${fmt.date(i.due)}</td>
+              <td data-label="Amount" style="font-weight:700;font-variant-numeric:tabular-nums;">${fmt.money(i.amount)}</td>
+              <td data-label="Balance" style="font-weight:700;font-variant-numeric:tabular-nums;color:${i.balance > 0 ? 'var(--amber)' : 'var(--green)'};">${fmt.money(i.balance)}</td>
+              <td data-label="Status"><span class="doc-status ${i.status}">${escHtml(i.status)}</span></td>
               <td><button class="btn btn-ghost btn-sm" onclick='App.openModal("invoice",${JSON.stringify(i).replace(/'/g, "&#39;")})'>${ICON.doc} View</button></td>
             </tr>
           `).join('')}
@@ -3460,15 +3505,17 @@ const Views = {
             const statusText = m.stock < m.reorder ? 'Reorder' : m.stock < m.reorder * 1.5 ? 'Low' : 'Healthy';
             return `
               <tr>
-                <td><div style="font-weight:700;color:var(--navy);">${escHtml(m.name)}</div></td>
-                <td>
-                  <div style="font-weight:700;font-variant-numeric:tabular-nums;">${m.stock} ${escHtml(m.unit)}</div>
-                  <div class="stock-bar" style="margin-top:5px;width:120px;"><div class="stock-fill ${lowness}" style="width:${ratio}%"></div></div>
+                <td data-label="Item"><div style="font-weight:700;color:var(--navy);">${escHtml(m.name)}</div></td>
+                <td data-label="Stock">
+                  <div>
+                    <div style="font-weight:700;font-variant-numeric:tabular-nums;">${m.stock} ${escHtml(m.unit)}</div>
+                    <div class="stock-bar" style="margin-top:5px;width:120px;"><div class="stock-fill ${lowness}" style="width:${ratio}%"></div></div>
+                  </div>
                 </td>
-                <td style="font-variant-numeric:tabular-nums;color:var(--ink-muted);">${m.reorder}</td>
-                <td style="font-variant-numeric:tabular-nums;font-weight:700;">${fmt.moneyDec(m.cost)}</td>
-                <td>${escHtml(m.supplier)}</td>
-                <td><span class="doc-status ${status}">${statusText}</span></td>
+                <td data-label="Reorder At" style="font-variant-numeric:tabular-nums;color:var(--ink-muted);">${m.reorder}</td>
+                <td data-label="Unit Cost" style="font-variant-numeric:tabular-nums;font-weight:700;">${fmt.moneyDec(m.cost)}</td>
+                <td data-label="Supplier">${escHtml(m.supplier)}</td>
+                <td data-label="Status"><span class="doc-status ${status}">${statusText}</span></td>
               </tr>
             `;
           }).join('')}
@@ -3632,27 +3679,35 @@ const Views = {
                 const dur = l.sessionDurationMs ? Math.round(l.sessionDurationMs / 60000) + 'm' : (l.success ? 'active' : '—');
                 return `
                 <tr>
-                  <td>
-                    <div style="font-weight:700;font-size:12px;color:var(--navy);">${fmt.dateShort(l.timestamp)}</div>
-                    <div style="font-size:10px;color:var(--ink-faint);font-family:ui-monospace,monospace;">${fmt.time(l.timestamp)}</div>
+                  <td data-label="When">
+                    <div>
+                      <div style="font-weight:700;font-size:12px;color:var(--navy);">${fmt.dateShort(l.timestamp)}</div>
+                      <div style="font-size:10px;color:var(--ink-faint);font-family:ui-monospace,monospace;">${fmt.time(l.timestamp)}</div>
+                    </div>
                   </td>
-                  <td><span class="role-pill ${l.role.split(' ')[0]}">${escHtml(l.role)}</span></td>
-                  <td>${l.success ? `<span class="login-row-success">✓ Success</span>` : `<span class="login-row-fail">✗ Failed</span>`}</td>
-                  <td style="font-family:ui-monospace,monospace;font-size:11px;">${escHtml(l.publicIP || '—')}</td>
-                  <td style="font-family:ui-monospace,monospace;font-size:11px;color:var(--ink-muted);">${escHtml(l.localIP || '—')}</td>
-                  <td>
-                    <div style="font-size:12px;font-weight:600;">${escHtml(l.device || 'Desktop')} · ${escHtml(l.browser)} ${escHtml(l.browserVersion)}</div>
-                    <div style="font-size:10px;color:var(--ink-faint);">${escHtml(l.screenResolution || '')}</div>
+                  <td data-label="Role"><span class="role-pill ${l.role.split(' ')[0]}">${escHtml(l.role)}</span></td>
+                  <td data-label="Result">${l.success ? `<span class="login-row-success">✓ Success</span>` : `<span class="login-row-fail">✗ Failed</span>`}</td>
+                  <td data-label="Public IP" style="font-family:ui-monospace,monospace;font-size:11px;">${escHtml(l.publicIP || '—')}</td>
+                  <td data-label="Local IP" style="font-family:ui-monospace,monospace;font-size:11px;color:var(--ink-muted);">${escHtml(l.localIP || '—')}</td>
+                  <td data-label="Device">
+                    <div>
+                      <div style="font-size:12px;font-weight:600;">${escHtml(l.device || 'Desktop')} · ${escHtml(l.browser)} ${escHtml(l.browserVersion)}</div>
+                      <div style="font-size:10px;color:var(--ink-faint);">${escHtml(l.screenResolution || '')}</div>
+                    </div>
                   </td>
-                  <td>
-                    <div style="font-size:12px;font-weight:600;">${escHtml(l.os)} ${escHtml(l.osVersion)}</div>
-                    <div style="font-size:10px;color:var(--ink-faint);">${l.cpuCores} cores · ${escHtml(String(l.deviceMemory))}</div>
+                  <td data-label="OS">
+                    <div>
+                      <div style="font-size:12px;font-weight:600;">${escHtml(l.os)} ${escHtml(l.osVersion)}</div>
+                      <div style="font-size:10px;color:var(--ink-faint);">${l.cpuCores} cores · ${escHtml(String(l.deviceMemory))}</div>
+                    </div>
                   </td>
-                  <td>
-                    <div style="font-size:11px;">${escHtml(l.timezone || '—')}</div>
-                    <div style="font-size:10px;color:var(--ink-faint);">${escHtml(l.language || '')}</div>
+                  <td data-label="Location">
+                    <div>
+                      <div style="font-size:11px;">${escHtml(l.timezone || '—')}</div>
+                      <div style="font-size:10px;color:var(--ink-faint);">${escHtml(l.language || '')}</div>
+                    </div>
                   </td>
-                  <td><span style="font-size:11px;font-weight:700;color:${l.success?'var(--green)':'var(--ink-faint)'};">${escHtml(dur)}</span></td>
+                  <td data-label="Session"><span style="font-size:11px;font-weight:700;color:${l.success?'var(--green)':'var(--ink-faint)'};">${escHtml(dur)}</span></td>
                   <td><button class="btn btn-ghost btn-sm" onclick='Views.openLoginDetail(${JSON.stringify(l).replace(/'/g, "&#39;")})'>${ICON.eye}</button></td>
                 </tr>`;
               }).join('')}
