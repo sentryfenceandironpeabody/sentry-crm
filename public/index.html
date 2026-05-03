@@ -1056,6 +1056,72 @@ input:focus, select:focus, textarea:focus { outline: none; }
 .priority-pill.Medium { background: var(--blue-soft); color: var(--blue); }
 .priority-pill.Low { background: var(--cream-2); color: var(--ink-muted); }
 
+/* ===== PER-VIEW SEARCH BAR ===== */
+.view-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 18px;
+  transition: all .15s ease;
+}
+.view-search:focus-within {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(197,160,89,.12);
+}
+.view-search > svg { width: 16px; height: 16px; color: var(--ink-faint); flex-shrink: 0; }
+.view-search input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  outline: none;
+  padding: 4px 0;
+  min-width: 0;
+}
+.view-search .search-clear {
+  background: var(--cream-2);
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--ink-muted);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  font-weight: 700;
+}
+.view-search .search-clear:hover { background: var(--line); color: var(--navy); }
+.view-search .search-count {
+  font-size: 11px;
+  color: var(--ink-muted);
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+  background: var(--cream-2);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+.view-search .search-count.empty { background: var(--red-soft); color: var(--red); }
+
+.empty-state {
+  background: #fff;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--ink-faint);
+  font-size: 13px;
+}
+
 /* ===== HAMBURGER (mobile only) ===== */
 .hamburger {
   display: none;
@@ -2213,6 +2279,10 @@ const App = {
 
   render() {
     const C = document.getElementById('content');
+    // Preserve search input focus across re-renders
+    const wasSearchFocused = document.activeElement?.id === 'viewSearchInput';
+    const cursorPos = wasSearchFocused ? document.activeElement.selectionStart : null;
+
     // Destroy any existing charts
     Object.values(State.charts).forEach(c => { try { c.destroy(); } catch(e){} });
     State.charts = {};
@@ -2231,6 +2301,19 @@ const App = {
       case 'users': C.innerHTML = Views.userManagement(); Views.afterUserManagement(); break;
       case 'settings': C.innerHTML = Views.settings(); break;
     }
+
+    // Restore search focus after re-render
+    if (wasSearchFocused) {
+      requestAnimationFrame(() => {
+        const el = document.getElementById('viewSearchInput');
+        if (el) {
+          el.focus();
+          if (cursorPos != null && typeof el.setSelectionRange === 'function') {
+            try { el.setSelectionRange(cursorPos, cursorPos); } catch {}
+          }
+        }
+      });
+    }
   },
 
   /* MODALS */
@@ -2247,6 +2330,22 @@ const App = {
   },
   closeModal() {
     document.getElementById('modal-host').innerHTML = '';
+  },
+
+  setSearch(val) {
+    State.filter.search = val;
+    if (this._searchDebounce) clearTimeout(this._searchDebounce);
+    this._searchDebounce = setTimeout(() => this.render(), 180);
+  },
+
+  clearSearch() {
+    State.filter.search = '';
+    if (this._searchDebounce) clearTimeout(this._searchDebounce);
+    this.render();
+    setTimeout(() => {
+      const el = document.getElementById('viewSearchInput');
+      if (el) el.focus();
+    }, 0);
   },
 
   toggleSidebar(force) {
@@ -2779,6 +2878,7 @@ const Views = {
   },
 
   pipeline() {
+    const filtered = this.filteredJobs();
     return `
       <div class="page-head">
         <div>
@@ -2789,6 +2889,8 @@ const Views = {
           ${this.filterBar()}
         </div>
       </div>
+
+      ${this.searchBar('Search jobs by name, address, town, or service…', filtered.length, State.jobs.length)}
 
       <div class="kanban-wrap" id="kanban">
         ${STAGES.map(stage => this.column(stage)).join('')}
@@ -2806,6 +2908,27 @@ const Views = {
         `).join('')}
       </div>
     `;
+  },
+
+  // Search bar helper used by list views
+  searchBar(placeholder, count, total) {
+    const v = State.filter.search || '';
+    const isEmpty = v && count === 0;
+    return `
+      <div class="view-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="viewSearchInput" type="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+               placeholder="${escHtml(placeholder)}" value="${escHtml(v)}"
+               oninput="App.setSearch(this.value)" />
+        ${v ? `<button class="search-clear" onclick="App.clearSearch()" aria-label="Clear search">×</button>` : ''}
+        ${count != null && total != null ? `<span class="search-count ${isEmpty ? 'empty' : ''}">${count} / ${total}</span>` : ''}
+      </div>
+    `;
+  },
+
+  matchesSearch(haystack, term) {
+    if (!term) return true;
+    return String(haystack || '').toLowerCase().includes(term.toLowerCase());
   },
 
   filteredJobs() {
@@ -3273,6 +3396,9 @@ const Views = {
         </div>
       </div>
 
+      ${this.searchBar('Search customers by name, phone, email, address, or town…', filtered.length, State.customers.length)}
+
+      ${filtered.length === 0 ? `<div class="empty-state">No customers match "${escHtml(State.filter.search)}".</div>` : `
       <table class="tbl">
         <thead><tr>
           <th>Customer</th><th>Contact</th><th>Address</th><th>Jobs</th><th>Lifetime Value</th><th>Status</th>
@@ -3304,9 +3430,9 @@ const Views = {
               </td>
             </tr>
           `).join('')}
-          ${!filtered.length ? `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--ink-faint);">No customers match your search.</td></tr>` : ''}
         </tbody>
       </table>
+      `}
     `;
   },
 
@@ -3354,7 +3480,11 @@ const Views = {
 
   /* ESTIMATES */
   estimates() {
-    const active = State.jobs.filter(j => ['Lead','Quote Sent','Contract'].includes(j.status));
+    const allActive = State.jobs.filter(j => ['Lead','Quote Sent','Contract'].includes(j.status));
+    const term = (State.filter.search || '').toLowerCase();
+    const active = !term ? allActive : allActive.filter(j =>
+      (j.customerName + ' ' + j.serviceType + ' ' + (j.town||'') + ' ' + (j.address||'') + ' ' + (j.description||'')).toLowerCase().includes(term)
+    );
     const total = active.reduce((a, j) => a + j.totalValue, 0);
     const avg = active.length ? total / active.length : 0;
     return `
@@ -3365,12 +3495,15 @@ const Views = {
         </div>
       </div>
 
+      ${this.searchBar('Search estimates by customer, service, address…', active.length, allActive.length)}
+
       <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);">
         ${this.kpi('Open Pipeline', fmt.money(total), `${active.length} estimates`, 'up', 'trend')}
         ${this.kpi('Average Quote', fmt.money(Math.round(avg)), 'Per project', 'up', 'doc')}
         ${this.kpi('Win Rate (90d)', '67%', '+8% vs prior', 'up', 'check')}
       </div>
 
+      ${active.length === 0 ? `<div class="empty-state">No estimates match "${escHtml(State.filter.search)}".</div>` : `
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
         ${active.map(j => {
           const profit = j.totalValue - (j.materialCost || 0) - (j.laborCost || 0);
@@ -3395,12 +3528,17 @@ const Views = {
           `;
         }).join('')}
       </div>
+      `}
     `;
   },
 
   /* INVOICES */
   invoices() {
-    const inv = State.invoices;
+    const allInv = State.invoices;
+    const term = (State.filter.search || '').toLowerCase();
+    const inv = !term ? allInv : allInv.filter(i =>
+      ((i.number||'') + ' ' + (i.customer||'') + ' ' + (i.status||'')).toLowerCase().includes(term)
+    );
     const totalOutstanding = inv.filter(i => i.status !== 'paid').reduce((a, i) => a + i.balance, 0);
     const totalPaid = inv.filter(i => i.status === 'paid').reduce((a, i) => a + i.amount, 0);
     const overdue = inv.filter(i => i.status === 'overdue').length;
@@ -3411,6 +3549,8 @@ const Views = {
           <button class="btn btn-ghost btn-sm" onclick="App.exportCSV('invoices')">${ICON.download} Export</button>
         </div>
       </div>
+
+      ${this.searchBar('Search by invoice number, customer, or status…', inv.length, allInv.length)}
 
       <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);">
         ${this.kpi('Outstanding', fmt.money(totalOutstanding), `${inv.filter(i=>i.status!=='paid').length} invoices`, 'down', 'invoices')}
@@ -3435,6 +3575,7 @@ const Views = {
               <td><button class="btn btn-ghost btn-sm" onclick='App.openModal("invoice",${JSON.stringify(i).replace(/'/g, "&#39;")})'>${ICON.doc} View</button></td>
             </tr>
           `).join('')}
+          ${!inv.length ? `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--ink-faint);">No invoices match your search.</td></tr>` : ''}
         </tbody>
       </table>
     `;
@@ -3485,6 +3626,10 @@ const Views = {
 
   /* MATERIALS */
   materials() {
+    const term = (State.filter.search || '').toLowerCase();
+    const filteredMats = !term ? State.materials : State.materials.filter(m =>
+      ((m.name||'') + ' ' + (m.supplier||'') + ' ' + (m.unit||'')).toLowerCase().includes(term)
+    );
     return `
       <div class="page-head">
         <div><h1>Materials</h1><p>Inventory, reorder thresholds, and supplier tracking.</p></div>
@@ -3493,12 +3638,14 @@ const Views = {
         </div>
       </div>
 
+      ${this.searchBar('Search materials by name, supplier, or unit…', filteredMats.length, State.materials.length)}
+
       <table class="tbl">
         <thead><tr>
           <th>Item</th><th>Stock</th><th>Reorder At</th><th>Unit Cost</th><th>Supplier</th><th>Status</th>
         </tr></thead>
         <tbody>
-          ${State.materials.map(m => {
+          ${filteredMats.map(m => {
             const ratio = Math.min(100, (m.stock / Math.max(m.reorder * 2, 1)) * 100);
             const lowness = m.stock < m.reorder ? 'critical' : m.stock < m.reorder * 1.5 ? 'low' : '';
             const status = m.stock < m.reorder ? 'overdue' : m.stock < m.reorder * 1.5 ? 'sent' : 'paid';
@@ -3519,6 +3666,7 @@ const Views = {
               </tr>
             `;
           }).join('')}
+          ${!filteredMats.length ? `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--ink-faint);">No materials match your search.</td></tr>` : ''}
         </tbody>
       </table>
     `;
@@ -3580,7 +3728,11 @@ const Views = {
 
   /* USER MANAGEMENT */
   userManagement() {
-    const log = State.loginLog || [];
+    const allLog = State.loginLog || [];
+    const term = (State.filter.search || '').toLowerCase();
+    const log = !term ? allLog : allLog.filter(l =>
+      ((l.role||'') + ' ' + (l.publicIP||'') + ' ' + (l.localIP||'') + ' ' + (l.browser||'') + ' ' + (l.os||'') + ' ' + (l.device||'') + ' ' + (l.timezone||'') + ' ' + (l.success ? 'success' : 'failed')).toLowerCase().includes(term)
+    );
     const successCount = log.filter(l => l.success).length;
     const failCount = log.filter(l => !l.success).length;
     const last24 = log.filter(l => Date.now() - l.timestamp < 86400000).length;
@@ -3610,6 +3762,8 @@ const Views = {
           <button class="btn btn-ghost btn-sm" onclick="if(confirm('Clear all login records? This cannot be undone.')){State.loginLog=[];persist();App.render();App.renderNav();toast('Login log cleared.');}">${ICON.trash} Clear Log</button>
         </div>
       </div>
+
+      ${this.searchBar('Search by role, IP, browser, OS, or success/failed…', log.length, allLog.length)}
 
       <div class="kpi-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));">
         ${this.kpi('Total Logins', log.length, `${successCount} success / ${failCount} failed`, failCount ? 'down' : 'up', 'lock')}
