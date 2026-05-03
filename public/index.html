@@ -1263,6 +1263,188 @@ input:focus, select:focus, textarea:focus { outline: none; }
   .inv-unit { font-size: 10px; padding: 0 6px; }
 }
 
+/* ===== ESTIMATE BUILDER LINE ITEMS ===== */
+.est-section {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+.est-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.est-section-head h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--navy);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.est-section-head h3 svg { width: 16px; height: 16px; color: var(--gold); }
+
+.est-line-head {
+  display: grid;
+  grid-template-columns: 2fr 80px 110px 110px 36px;
+  gap: 10px;
+  padding: 0 4px 6px;
+  font-size: 9px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 700;
+}
+.est-line {
+  display: grid;
+  grid-template-columns: 2fr 80px 110px 110px 36px;
+  gap: 10px;
+  align-items: center;
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+}
+.est-line select {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 7px 8px;
+  font-size: 13px;
+  color: var(--ink);
+  width: 100%;
+  outline: none;
+}
+.est-line .est-qty {
+  background: #fff;
+  border: 1.5px solid var(--gold);
+  border-radius: 6px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 7px 4px;
+  width: 100%;
+  outline: none;
+  font-variant-numeric: tabular-nums;
+}
+.est-unit-price {
+  text-align: right;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+.est-unit-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+}
+.est-line-total {
+  text-align: right;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--navy);
+  font-variant-numeric: tabular-nums;
+}
+.est-remove {
+  background: transparent;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: var(--ink-faint);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.est-remove:hover { background: var(--red-soft); color: var(--red); }
+.est-remove svg { width: 14px; height: 14px; }
+
+.est-line-empty {
+  text-align: center;
+  padding: 24px 16px;
+  color: var(--ink-faint);
+  font-size: 12px;
+  background: var(--cream);
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+}
+
+.est-totals {
+  margin-top: 22px;
+  padding: 18px;
+  background: linear-gradient(180deg, var(--cream), #fff);
+  border: 1px solid var(--gold-soft);
+  border-radius: var(--radius);
+}
+.est-totals-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 13px;
+  color: var(--ink-muted);
+  font-weight: 600;
+}
+.est-totals-grand {
+  margin-top: 8px;
+  padding-top: 14px;
+  border-top: 2px solid var(--gold);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  color: var(--navy);
+}
+.est-totals-grand .est-num {
+  font-size: 24px;
+  color: var(--navy);
+}
+.est-num {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+.est-totals-meta {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line-soft);
+}
+.est-meta-val {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--navy);
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
+}
+
+@media (max-width: 700px) {
+  .est-line-head { display: none; }
+  .est-line {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 12px;
+  }
+  .est-line select { font-size: 14px; }
+  .est-line .est-qty, .est-unit-price, .est-line-total {
+    text-align: left;
+  }
+  .est-line .est-qty::before { content: 'Quantity: '; font-weight: 600; }
+  .est-unit-price::before { content: 'Unit Price: '; font-weight: 600; color: var(--ink-faint); }
+  .est-line-total::before { content: 'Line Total: '; font-weight: 600; color: var(--ink-faint); }
+  .est-remove { justify-self: flex-end; margin-top: -32px; }
+  .est-totals-meta { grid-template-columns: 1fr 1fr; }
+  .est-totals-grand .est-num { font-size: 20px; }
+}
+
 /* ===== HAMBURGER (mobile only) ===== */
 .hamburger {
   display: none;
@@ -4526,6 +4708,46 @@ const Modals = {
                   </div>
                 </div>` : ''}
 
+                ${j.materialLineItems && j.materialLineItems.length ? `
+                <div class="detail-section">
+                  <h3>${ICON.materials} Materials Breakdown</h3>
+                  <div style="background:var(--cream);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;">
+                    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                      <thead>
+                        <tr style="background:#fff;border-bottom:1px solid var(--line);">
+                          <th style="text-align:left;padding:10px 12px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);font-weight:700;">Material</th>
+                          <th style="text-align:right;padding:10px 12px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);font-weight:700;">Qty</th>
+                          <th style="text-align:right;padding:10px 12px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);font-weight:700;">Unit Price</th>
+                          <th style="text-align:right;padding:10px 12px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);font-weight:700;">Line Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${j.materialLineItems.map(l => `
+                          <tr style="border-bottom:1px solid var(--line-soft);">
+                            <td style="padding:10px 12px;font-weight:600;">${escHtml(l.materialName)}</td>
+                            <td style="text-align:right;padding:10px 12px;font-variant-numeric:tabular-nums;">${l.qty} ${escHtml(l.unit||'')}</td>
+                            <td style="text-align:right;padding:10px 12px;font-variant-numeric:tabular-nums;color:var(--ink-muted);">${fmt.moneyDec(l.unitPrice)}</td>
+                            <td style="text-align:right;padding:10px 12px;font-variant-numeric:tabular-nums;font-weight:700;color:var(--navy);">${fmt.money(l.qty * l.unitPrice)}</td>
+                          </tr>
+                        `).join('')}
+                        <tr style="background:#fff;">
+                          <td colspan="3" style="padding:10px 12px;text-align:right;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-muted);">Materials Subtotal</td>
+                          <td style="text-align:right;padding:10px 12px;font-variant-numeric:tabular-nums;font-weight:800;color:var(--navy);">${fmt.money(j.materialLineItems.reduce((a,l) => a + l.qty*l.unitPrice, 0))}</td>
+                        </tr>
+                        ${j.laborCost ? `
+                        <tr style="background:#fff;border-top:1px solid var(--line-soft);">
+                          <td colspan="3" style="padding:10px 12px;text-align:right;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-muted);">Labor${j.laborNotes ? ` <span style="font-weight:500;text-transform:none;letter-spacing:0;color:var(--ink-faint);">(${escHtml(j.laborNotes)})</span>` : ''}</td>
+                          <td style="text-align:right;padding:10px 12px;font-variant-numeric:tabular-nums;font-weight:800;color:var(--navy);">${fmt.money(j.laborCost)}</td>
+                        </tr>` : ''}
+                        <tr style="background:linear-gradient(180deg, var(--cream), rgba(197,160,89,.1));border-top:2px solid var(--gold);">
+                          <td colspan="3" style="padding:14px 12px;text-align:right;font-size:11px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--navy);">Customer Total</td>
+                          <td style="text-align:right;padding:14px 12px;font-variant-numeric:tabular-nums;font-weight:800;color:var(--navy);font-size:16px;">${fmt.money(j.totalValue)}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>` : ''}
+
                 <div class="detail-section">
                   <h3>${ICON.task} Project Tasks</h3>
                   <div class="task-list">
@@ -4648,95 +4870,203 @@ const Modals = {
 
   estimateBuilder(job) {
     const j = job || {};
-    const lf = j.linearFeet || 100;
-    const cpf = j.serviceType === 'Ornamental Aluminum' ? 75 : j.serviceType === 'White Vinyl Privacy' ? 55 : 38;
-    const gates = j.gateCount || 0;
+    // Initialize line items from job, or start with one empty row
+    const initialLines = (j.materialLineItems && j.materialLineItems.length)
+      ? j.materialLineItems
+      : [{ materialId: '', materialName: '', unit: '', qty: 1, unitPrice: 0, unitCost: 0 }];
+    this._estLines = initialLines.map(l => ({ ...l }));
+    this._estJobId = j.id || null;
+
     return `
       <div class="modal-backdrop" onclick="App.closeModal()">
-        <div class="modal modal-md" onclick="event.stopPropagation()">
+        <div class="modal modal-lg" onclick="event.stopPropagation()">
           <div class="modal-head">
-            <div><h2>Estimate Builder</h2><div class="sub">Calculate materials, labor, and margin</div></div>
+            <div><h2>Estimate Builder</h2><div class="sub">Add materials line-by-line — customer pricing pulled from inventory</div></div>
             <button class="modal-close" onclick="App.closeModal()">${ICON.x}</button>
           </div>
           <div class="modal-body">
             <div class="form-grid">
-              <div class="field"><label>Customer Name</label><input id="ebName" value="${escHtml(j.customerName||'')}"/></div>
+              <div class="field"><label>Customer Name</label><input id="ebName" value="${escHtml(j.customerName||'')}" placeholder="e.g. Mike Sullivan"/></div>
               <div class="field"><label>Service Type</label>
-                <select id="ebService" onchange="Modals.recalc()">${SERVICES.map(s => `<option ${j.serviceType===s?'selected':''}>${s}</option>`).join('')}</select>
+                <select id="ebService">${SERVICES.map(s => `<option ${j.serviceType===s?'selected':''}>${s}</option>`).join('')}</select>
               </div>
-              <div class="field"><label>Linear Feet</label><input id="ebLF" type="number" value="${lf}" oninput="Modals.recalc()"/></div>
-              <div class="field"><label>Cost / Linear Foot</label><input id="ebCPF" type="number" value="${cpf}" oninput="Modals.recalc()"/></div>
-              <div class="field"><label>Gate Count</label><input id="ebGates" type="number" value="${gates}" oninput="Modals.recalc()"/></div>
-              <div class="field"><label>Cost / Gate</label><input id="ebGateCost" type="number" value="350" oninput="Modals.recalc()"/></div>
-              <div class="field"><label>Material % of Total</label><input id="ebMatPct" type="number" value="42" oninput="Modals.recalc()"/></div>
-              <div class="field"><label>Labor % of Total</label><input id="ebLabPct" type="number" value="28" oninput="Modals.recalc()"/></div>
             </div>
 
-            <div style="margin-top:18px;background:var(--cream);padding:18px;border-radius:var(--radius);border:1px solid var(--line);">
-              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;">
-                <div><div class="micro-label">Subtotal</div><div id="ebSub" style="font-size:18px;font-weight:800;color:var(--navy);">$0</div></div>
-                <div><div class="micro-label">Material Cost</div><div id="ebMat" style="font-size:18px;font-weight:800;">$0</div></div>
-                <div><div class="micro-label">Labor Cost</div><div id="ebLab" style="font-size:18px;font-weight:800;">$0</div></div>
-                <div><div class="micro-label">Net Profit</div><div id="ebProf" style="font-size:18px;font-weight:800;color:var(--green);">$0</div></div>
+            <div class="est-section">
+              <div class="est-section-head">
+                <h3>${ICON.materials} Materials Used</h3>
+                <button class="btn btn-gold btn-sm" onclick="Modals.addEstimateLine()">${ICON.plus || '+'} Add Material</button>
               </div>
-              <div style="margin-top:14px;height:8px;background:var(--line);border-radius:999px;overflow:hidden;display:flex;">
-                <div id="ebMatBar" style="background:var(--gold);height:100%;"></div>
-                <div id="ebLabBar" style="background:var(--navy);height:100%;"></div>
-                <div id="ebProBar" style="background:var(--green);height:100%;"></div>
+              <div class="est-line-head">
+                <div>Material</div>
+                <div style="text-align:center;">Qty</div>
+                <div style="text-align:right;">Unit Price</div>
+                <div style="text-align:right;">Line Total</div>
+                <div></div>
               </div>
-              <div style="display:flex;justify-content:space-between;margin-top:5px;font-size:10px;color:var(--ink-muted);font-weight:700;">
-                <span>Material</span><span>Labor</span><span>Profit</span>
+              <div id="ebLineItems"></div>
+              <div id="ebMatEmpty" class="est-line-empty" style="display:none;">No materials added yet — click "Add Material" to start building this estimate.</div>
+            </div>
+
+            <div class="est-section">
+              <div class="est-section-head">
+                <h3>${ICON.crew} Labor</h3>
+              </div>
+              <div class="form-grid">
+                <div class="field">
+                  <label>Labor Cost ($)</label>
+                  <input id="ebLaborCost" type="number" min="0" step="0.01" value="${j.laborCost || 0}" oninput="Modals.recalcEstimate()" />
+                </div>
+                <div class="field">
+                  <label>Labor Notes (optional)</label>
+                  <input id="ebLaborNotes" type="text" value="${escHtml(j.laborNotes || '')}" placeholder="e.g. 2 days × 2 installers" />
+                </div>
+              </div>
+            </div>
+
+            <div class="est-totals">
+              <div class="est-totals-row"><span>Materials Subtotal</span><span id="ebMatSub" class="est-num">$0</span></div>
+              <div class="est-totals-row"><span>Labor</span><span id="ebLabSub" class="est-num">$0</span></div>
+              <div class="est-totals-row est-totals-grand">
+                <span>CUSTOMER TOTAL</span>
+                <span id="ebGrandTotal" class="est-num">$0</span>
+              </div>
+              <div class="est-totals-meta">
+                <div><span class="micro-label">Material Cost</span><div id="ebMatCost" class="est-meta-val">$0</div></div>
+                <div><span class="micro-label">Gross Profit</span><div id="ebProfit" class="est-meta-val" style="color:var(--green);">$0</div></div>
+                <div><span class="micro-label">Margin</span><div id="ebMargin" class="est-meta-val">0%</div></div>
               </div>
             </div>
           </div>
           <div class="modal-foot">
             <button class="btn btn-ghost" onclick="App.closeModal()">Cancel</button>
-            ${j.id ? `<button class="btn btn-primary" onclick="Modals.saveEstimate('${j.id}')">${ICON.check} Update Job</button>` : `<button class="btn btn-primary" onclick="Modals.saveEstimateAsLead()">${ICON.check} Save as New Lead</button>`}
+            ${j.id
+              ? `<button class="btn btn-primary" onclick="Modals.saveEstimate('${j.id}')">${ICON.check} Update Job</button>`
+              : `<button class="btn btn-primary" onclick="Modals.saveEstimateAsLead()">${ICON.check} Save as New Lead</button>`}
           </div>
         </div>
       </div>
     `;
   },
 
-  recalc() {
-    const lf = +document.getElementById('ebLF').value || 0;
-    const cpf = +document.getElementById('ebCPF').value || 0;
-    const gates = +document.getElementById('ebGates').value || 0;
-    const gc = +document.getElementById('ebGateCost').value || 0;
-    const mp = +document.getElementById('ebMatPct').value || 0;
-    const lp = +document.getElementById('ebLabPct').value || 0;
-    const sub = lf * cpf + gates * gc;
-    const mat = Math.round(sub * mp / 100);
-    const lab = Math.round(sub * lp / 100);
-    const prof = sub - mat - lab;
-    document.getElementById('ebSub').textContent = fmt.money(sub);
-    document.getElementById('ebMat').textContent = fmt.money(mat);
-    document.getElementById('ebLab').textContent = fmt.money(lab);
-    document.getElementById('ebProf').textContent = fmt.money(prof);
-    const total = Math.max(1, sub);
-    document.getElementById('ebMatBar').style.width = (mat / total * 100) + '%';
-    document.getElementById('ebLabBar').style.width = (lab / total * 100) + '%';
-    document.getElementById('ebProBar').style.width = (Math.max(0, prof) / total * 100) + '%';
+  // Render all line items into the #ebLineItems container
+  renderEstimateLines() {
+    const container = document.getElementById('ebLineItems');
+    const empty = document.getElementById('ebMatEmpty');
+    if (!container) return;
+    if (!this._estLines || this._estLines.length === 0) {
+      container.innerHTML = '';
+      if (empty) empty.style.display = '';
+      this.recalcEstimate();
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+    container.innerHTML = this._estLines.map((l, i) => {
+      const lineTotal = (Number(l.qty) || 0) * (Number(l.unitPrice) || 0);
+      return `
+        <div class="est-line">
+          <select onchange="Modals.updateEstimateLine(${i}, 'material', this.value)">
+            <option value="">— Select material —</option>
+            ${State.materials.map(m => `<option value="${m.id}" ${l.materialId === m.id ? 'selected' : ''}>${escHtml(m.name)} (${fmt.moneyDec(m.markedUp || 0)}/${escHtml(m.unit || 'EA')})</option>`).join('')}
+          </select>
+          <input type="number" min="0" step="1" class="est-qty" value="${l.qty || 0}"
+                 oninput="Modals.updateEstimateLine(${i}, 'qty', this.value)" />
+          <div class="est-unit-price">${fmt.moneyDec(l.unitPrice || 0)}<div class="est-unit-label">${escHtml(l.unit || '')}</div></div>
+          <div class="est-line-total">${fmt.money(lineTotal)}</div>
+          <button class="est-remove" onclick="Modals.removeEstimateLine(${i})" title="Remove line">${ICON.x}</button>
+        </div>
+      `;
+    }).join('');
+    this.recalcEstimate();
+  },
+
+  addEstimateLine() {
+    if (!this._estLines) this._estLines = [];
+    this._estLines.push({ materialId: '', materialName: '', unit: '', qty: 1, unitPrice: 0, unitCost: 0 });
+    this.renderEstimateLines();
+  },
+
+  removeEstimateLine(idx) {
+    if (!this._estLines) return;
+    this._estLines.splice(idx, 1);
+    if (this._estLines.length === 0) this.addEstimateLine();
+    else this.renderEstimateLines();
+  },
+
+  updateEstimateLine(idx, field, value) {
+    if (!this._estLines || !this._estLines[idx]) return;
+    const line = this._estLines[idx];
+    if (field === 'material') {
+      const m = State.materials.find(m => m.id === value);
+      if (m) {
+        line.materialId = m.id;
+        line.materialName = m.name;
+        line.unit = m.unit;
+        line.unitPrice = Number(m.markedUp) || 0;
+        line.unitCost = Number(m.cost) || 0;
+      } else {
+        line.materialId = ''; line.materialName = ''; line.unit = ''; line.unitPrice = 0; line.unitCost = 0;
+      }
+      this.renderEstimateLines();
+    } else if (field === 'qty') {
+      line.qty = Math.max(0, Number(value) || 0);
+      this.recalcEstimate();
+      // Update just this line's total without re-rendering (preserves focus)
+      const container = document.getElementById('ebLineItems');
+      if (container) {
+        const rows = container.querySelectorAll('.est-line');
+        const row = rows[idx];
+        if (row) {
+          const totalEl = row.querySelector('.est-line-total');
+          if (totalEl) totalEl.textContent = fmt.money(line.qty * line.unitPrice);
+        }
+      }
+    }
+  },
+
+  recalcEstimate() {
+    if (!this._estLines) return;
+    const matSub = this._estLines.reduce((a, l) => a + (Number(l.qty) || 0) * (Number(l.unitPrice) || 0), 0);
+    const matCost = this._estLines.reduce((a, l) => a + (Number(l.qty) || 0) * (Number(l.unitCost) || 0), 0);
+    const labor = Number(document.getElementById('ebLaborCost')?.value) || 0;
+    const grand = matSub + labor;
+    const profit = grand - matCost - labor; // pure material profit (labor is cost+revenue equal)
+    const margin = grand > 0 ? Math.round((profit / grand) * 100) : 0;
+
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    set('ebMatSub', fmt.money(matSub));
+    set('ebLabSub', fmt.money(labor));
+    set('ebGrandTotal', fmt.money(grand));
+    set('ebMatCost', fmt.money(matCost));
+    set('ebProfit', fmt.money(profit));
+    set('ebMargin', margin + '%');
+    const marginEl = document.getElementById('ebMargin');
+    if (marginEl) marginEl.style.color = margin >= 30 ? 'var(--green)' : margin >= 15 ? 'var(--amber)' : 'var(--red)';
+  },
+
+  // Collect cleaned line items + totals from current modal state
+  _collectEstimate() {
+    const lines = (this._estLines || []).filter(l => l.materialId && l.qty > 0);
+    const matSub = lines.reduce((a, l) => a + l.qty * l.unitPrice, 0);
+    const matCost = lines.reduce((a, l) => a + l.qty * (l.unitCost || 0), 0);
+    const labor = Number(document.getElementById('ebLaborCost')?.value) || 0;
+    const grand = matSub + labor;
+    const linearFeet = lines.filter(l => l.unit === 'LF').reduce((a, l) => a + l.qty, 0);
+    return { lines, matSub, matCost, labor, grand, linearFeet };
   },
 
   saveEstimate(jobId) {
     const job = State.jobs.find(j => j.id === jobId);
     if (!job) return;
-    const lf = +document.getElementById('ebLF').value;
-    const cpf = +document.getElementById('ebCPF').value;
-    const gates = +document.getElementById('ebGates').value;
-    const gc = +document.getElementById('ebGateCost').value;
-    const sub = lf * cpf + gates * gc;
-    const mp = +document.getElementById('ebMatPct').value;
-    const lp = +document.getElementById('ebLabPct').value;
-    job.linearFeet = lf;
-    job.costPerFoot = cpf;
-    job.gateCount = gates;
-    job.totalValue = sub;
-    job.estimatedValue = sub;
-    job.materialCost = Math.round(sub * mp / 100);
-    job.laborCost = Math.round(sub * lp / 100);
+    const { lines, matSub, matCost, labor, grand, linearFeet } = this._collectEstimate();
+    job.materialLineItems = lines;
+    job.materialCost = matCost;
+    job.laborCost = labor;
+    job.totalValue = grand;
+    job.estimatedValue = grand;
+    if (linearFeet > 0) job.linearFeet = linearFeet;
     job.serviceType = document.getElementById('ebService').value;
+    job.laborNotes = document.getElementById('ebLaborNotes').value || '';
     job.updatedAt = Date.now();
     persist();
     App.closeModal();
@@ -4745,22 +5075,24 @@ const Modals = {
   },
 
   saveEstimateAsLead() {
-    const lf = +document.getElementById('ebLF').value;
-    const cpf = +document.getElementById('ebCPF').value;
-    const gates = +document.getElementById('ebGates').value;
-    const gc = +document.getElementById('ebGateCost').value;
-    const sub = lf * cpf + gates * gc;
-    const mp = +document.getElementById('ebMatPct').value;
-    const lp = +document.getElementById('ebLabPct').value;
+    const { lines, matSub, matCost, labor, grand, linearFeet } = this._collectEstimate();
+    if (lines.length === 0 && labor === 0) {
+      toast('Add at least one material or labor before saving.', 'error');
+      return;
+    }
     App.saveJob({
       customerName: document.getElementById('ebName').value || 'New Estimate',
       address: '', town: '', phone: '', email: '',
       serviceType: document.getElementById('ebService').value,
       priority: 'Medium', status: 'Quote Sent',
-      linearFeet: lf, costPerFoot: cpf, gateCount: gates,
-      totalValue: sub, estimatedValue: sub,
-      materialCost: Math.round(sub * mp / 100),
-      laborCost: Math.round(sub * lp / 100),
+      linearFeet: linearFeet || 0,
+      gateCount: lines.filter(l => /gate/i.test(l.materialName)).reduce((a, l) => a + l.qty, 0),
+      materialLineItems: lines,
+      materialCost: matCost,
+      laborCost: labor,
+      laborNotes: document.getElementById('ebLaborNotes').value || '',
+      totalValue: grand,
+      estimatedValue: grand,
     });
     App.closeModal();
   },
@@ -4991,7 +5323,9 @@ const Modals = {
   },
 
   afterOpen(type, payload) {
-    if (type === 'estimateBuilder') Modals.recalc();
+    if (type === 'estimateBuilder') {
+      Modals.renderEstimateLines();
+    }
   },
 };
 
