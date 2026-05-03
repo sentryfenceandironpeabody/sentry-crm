@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Sentry CRM" />
+<meta name="theme-color" content="#1a365d" />
 <title>Sentry Fence CRM Pro</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/gridjs@5.0.2/dist/gridjs.umd.js" integrity="sha384-/XXDzxe4FsGiAe50i/u9pY/Vy/uX654MHB1xoc1BJNnH1WXHhqHga9g3q5tF4gj7" crossorigin="anonymous"></script>
@@ -1052,15 +1056,213 @@ input:focus, select:focus, textarea:focus { outline: none; }
 .priority-pill.Medium { background: var(--blue-soft); color: var(--blue); }
 .priority-pill.Low { background: var(--cream-2); color: var(--ink-muted); }
 
-/* RESPONSIVE */
-@media (max-width: 900px) {
-  .app { grid-template-columns: 64px 1fr; }
-  .sidebar { padding: 16px 8px; }
-  .brand-name, .brand-sub, .nav-item span:not(.ic), .user-name, .user-role, .nav-section { display: none; }
-  .nav-item { justify-content: center; padding: 10px; }
-  .detail-grid { grid-template-columns: 1fr; }
-  .form-grid { grid-template-columns: 1fr; }
+/* ===== HAMBURGER (mobile only) ===== */
+.hamburger {
+  display: none;
+  width: 38px; height: 38px;
+  border-radius: 8px;
+  background: var(--cream);
+  border: 1px solid var(--line);
+  align-items: center; justify-content: center;
+  color: var(--navy);
+  cursor: pointer;
+  flex-shrink: 0;
 }
+.hamburger:active { background: var(--cream-2); }
+.hamburger svg { width: 20px; height: 20px; }
+.sidebar-backdrop {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(15,23,42,.5);
+  backdrop-filter: blur(2px);
+  z-index: 80;
+  opacity: 0;
+  transition: opacity .2s ease;
+}
+.sidebar-backdrop.show { display: block; opacity: 1; }
+
+/* ===== TABLET (≤1024px) ===== */
+@media (max-width: 1024px) {
+  .app { grid-template-columns: 200px 1fr; }
+  .content { padding: 18px; }
+  .kpi-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+  .column { width: 270px; }
+}
+
+/* ===== PHONE (≤700px) ===== */
+@media (max-width: 700px) {
+  /* Layout: single column, sidebar becomes off-canvas drawer */
+  .app { grid-template-columns: 1fr; }
+
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: 260px;
+    z-index: 90;
+    transform: translateX(-100%);
+    transition: transform .25s ease;
+    box-shadow: 4px 0 20px rgba(0,0,0,.25);
+    padding: 22px 14px;
+  }
+  .sidebar.open { transform: translateX(0); }
+  /* Restore full sidebar labels when drawer is open */
+  .brand-name, .brand-sub, .nav-item span:not(.ic),
+  .user-name, .user-role, .nav-section { display: block !important; }
+  .nav-item { justify-content: flex-start !important; padding: 12px !important; }
+
+  /* Hamburger visible only at this size */
+  .hamburger { display: inline-flex; }
+
+  /* Topbar adjustments */
+  .topbar {
+    padding: 10px 12px;
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+  .topbar > div:first-child { min-width: 0; flex-shrink: 1; overflow: hidden; }
+  .topbar h2 { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .topbar .crumbs { font-size: 8px; }
+
+  /* Hide search on phone (rely on filter chips inside views) */
+  .search-box { display: none; }
+
+  /* Topbar buttons: icon-only */
+  .topbar .btn span { display: none; }
+  .topbar .btn { padding: 9px 11px; min-width: 38px; justify-content: center; }
+  .topbar .btn .ic { width: 16px; height: 16px; margin: 0; }
+
+  /* Content padding tighter */
+  .content { padding: 14px; }
+
+  /* Page heading stacks */
+  .page-head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .page-head h1 { font-size: 20px; }
+  .page-head p { font-size: 12px; }
+  .page-actions { flex-wrap: wrap; gap: 6px; }
+  .page-actions .btn { flex: 1; min-width: 0; justify-content: center; }
+
+  /* KPI grid: 2 columns */
+  .kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .kpi { padding: 12px; }
+  .kpi-value { font-size: 20px; }
+  .kpi-label { font-size: 9px; letter-spacing: .12em; }
+  .kpi-delta { font-size: 10px; }
+  .kpi-icon { width: 26px; height: 26px; }
+  .kpi-icon svg { width: 14px; height: 14px; }
+
+  /* Dashboard 2-column chart row -> stacked */
+  .content > div[style*="grid-template-columns:2fr 1fr"],
+  .content > div[style*="grid-template-columns:1fr 1fr"],
+  .content > div[style*="grid-template-columns:1.4fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Pipeline kanban: snap-scroll for swipeability */
+  .kanban-wrap {
+    gap: 12px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -14px;
+    padding: 0 14px 16px;
+  }
+  .column {
+    width: calc(100vw - 56px);
+    max-width: 320px;
+    scroll-snap-align: center;
+    flex-shrink: 0;
+  }
+
+  /* Modals: full-screen on mobile */
+  .modal-backdrop { padding: 0; }
+  .modal {
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    border-radius: 0 !important;
+  }
+  .modal-head { padding: 14px 16px; }
+  .modal-head h2 { font-size: 16px; }
+  .modal-body { padding: 16px; }
+  .modal-foot { padding: 12px 16px; flex-direction: column-reverse; }
+  .modal-foot .btn { width: 100%; justify-content: center; }
+
+  /* Job detail: stack the two-column grid */
+  .detail-grid { grid-template-columns: 1fr !important; gap: 16px; }
+  .info-grid { grid-template-columns: 1fr !important; gap: 10px; padding: 12px; }
+
+  /* Forms: single column */
+  .form-grid { grid-template-columns: 1fr !important; gap: 10px; }
+  .field input, .field select, .field textarea {
+    font-size: 16px; /* prevents iOS auto-zoom on focus */
+    padding: 11px 12px;
+  }
+
+  /* Tables: horizontal scroll wrapper */
+  .tbl {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tbl thead, .tbl tbody, .tbl tr { display: table; width: 100%; table-layout: fixed; }
+  .tbl thead th, .tbl tbody td { font-size: 12px; padding: 10px 12px; }
+
+  /* Calendar: tighter cells */
+  .cal-day { min-height: 64px; padding: 4px; }
+  .cal-num { font-size: 10px; }
+  .cal-event { font-size: 8px; padding: 2px 4px; margin-top: 2px; }
+  .cal-dow { padding: 6px 4px; font-size: 8px; letter-spacing: .08em; }
+  .cal-month { font-size: 14px; }
+
+  /* Job map: shorter on mobile */
+  .map-canvas { aspect-ratio: 4 / 3; }
+  .map-pin-dot { width: 22px; height: 22px; font-size: 10px; }
+  .map-legend { font-size: 9px; padding: 8px 10px; bottom: 10px; right: 10px; }
+  .map-title-card { font-size: 9px; padding: 7px 10px; top: 10px; left: 10px; }
+
+  /* Job cards: tighter */
+  .job-card { padding: 11px 12px; }
+  .job-card-name { font-size: 13px; }
+  .job-card-value { font-size: 11px; padding: 3px 7px; }
+
+  /* Auth screen: tighter padding */
+  .auth-card { padding: 24px 18px; }
+  .auth-card h2 { font-size: 17px; }
+  .role-btn { padding: 12px 8px; }
+  .role-btn .role-icon { width: 36px; height: 36px; }
+  .role-btn .role-label { font-size: 12px; }
+  .role-btn .role-desc { font-size: 9px; }
+
+  /* Estimate scanner review modal: stack image + form */
+  .modal-body > div[style*="grid-template-columns:1fr 1.2fr"] {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  /* Touch targets: minimum 44×44 */
+  .nav-item, .btn, .chip, .tab, .kpi { min-height: 40px; }
+
+  /* Settings/User Mgmt: 2-col -> 1 */
+  .content > div[style*="grid-template-columns:1fr 1fr;gap:18px"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ===== SMALL PHONE (≤380px) ===== */
+@media (max-width: 380px) {
+  .kpi-grid { grid-template-columns: 1fr; }
+  .topbar h2 { font-size: 13px; }
+  .topbar .crumbs { display: none; }
+  .column { width: calc(100vw - 32px); }
+  .content { padding: 12px; }
+  .role-grid { grid-template-columns: 1fr; }
+}
+
 .hidden { display: none !important; }
 </style>
 </head>
@@ -1095,6 +1297,9 @@ input:focus, select:focus, textarea:focus { outline: none; }
 
   <main class="main">
     <header class="topbar">
+      <button class="hamburger" id="hamburger" onclick="App.toggleSidebar()" aria-label="Open menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
       <div>
         <div class="crumbs" id="crumb">Dashboard</div>
         <h2 id="topTitle">Welcome back</h2>
@@ -1122,6 +1327,7 @@ input:focus, select:focus, textarea:focus { outline: none; }
   </main>
 </div>
 
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="App.toggleSidebar(false)"></div>
 <div id="authHost"></div>
 <div id="modal-host"></div>
 <div class="toast-stack" id="toasts"></div>
@@ -1919,7 +2125,7 @@ const App = {
       </button>
     `).join('');
     document.querySelectorAll('.nav-item[data-view]').forEach(b => {
-      b.addEventListener('click', () => this.go(b.dataset.view));
+      b.addEventListener('click', () => { this.go(b.dataset.view); this.toggleSidebar(false); });
     });
   },
 
@@ -1996,6 +2202,16 @@ const App = {
   },
   closeModal() {
     document.getElementById('modal-host').innerHTML = '';
+  },
+
+  toggleSidebar(force) {
+    const sb = document.querySelector('.sidebar');
+    const bd = document.getElementById('sidebarBackdrop');
+    if (!sb || !bd) return;
+    const willOpen = force === true ? true : (force === false ? false : !sb.classList.contains('open'));
+    sb.classList.toggle('open', willOpen);
+    bd.classList.toggle('show', willOpen);
+    document.body.style.overflow = willOpen ? 'hidden' : '';
   },
 
   toggleQuickAdd() {
