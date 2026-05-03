@@ -1232,6 +1232,23 @@ input:focus, select:focus, textarea:focus { outline: none; }
   border: 1px solid var(--line);
   text-align: center;
 }
+.inv-total-customer {
+  background: linear-gradient(180deg, rgba(197,160,89,.08), rgba(197,160,89,.18));
+  border-color: var(--gold-soft);
+  color: var(--gold-deep);
+}
+.inv-markup-input {
+  border-color: var(--gold) !important;
+  background: linear-gradient(180deg, #fff, rgba(197,160,89,.04)) !important;
+  font-weight: 700 !important;
+}
+.inv-margin {
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 4px;
+  letter-spacing: .03em;
+  font-variant-numeric: tabular-nums;
+}
 .inv-card-foot {
   display: flex;
   justify-content: flex-end;
@@ -1873,14 +1890,14 @@ function seed() {
   ];
 
   State.materials = [
-    { id: 'm1', name: 'Cedar 6x6 Post', unit: 'EA', stock: 42, reorder: 30, cost: 28.50, supplier: 'Northeast Lumber' },
-    { id: 'm2', name: 'Cedar 1x6x6 Picket', unit: 'EA', stock: 280, reorder: 200, cost: 4.25, supplier: 'Northeast Lumber' },
-    { id: 'm3', name: 'White Vinyl 6\' Panel', unit: 'EA', stock: 18, reorder: 25, cost: 145, supplier: 'Master Halco' },
-    { id: 'm4', name: 'Aluminum Picket 4\'', unit: 'EA', stock: 55, reorder: 40, cost: 78, supplier: 'Specrail' },
-    { id: 'm5', name: 'Concrete 80lb Bag', unit: 'BAG', stock: 240, reorder: 100, cost: 6.40, supplier: 'Home Depot Pro' },
-    { id: 'm6', name: 'Galvanized 3" Screws', unit: 'BOX', stock: 12, reorder: 8, cost: 32, supplier: 'Fastenal' },
-    { id: 'm7', name: 'Chain Link 4\' Roll', unit: 'ROLL', stock: 8, reorder: 6, cost: 220, supplier: 'Master Halco' },
-    { id: 'm8', name: 'Pool Code Gate Latch', unit: 'EA', stock: 6, reorder: 10, cost: 68, supplier: 'D&D Technologies' },
+    { id: 'm1', name: 'Cedar 6x6 Post', unit: 'EA', stock: 42, reorder: 30, cost: 28.50, markedUp: 45.00, supplier: 'Northeast Lumber' },
+    { id: 'm2', name: 'Cedar 1x6x6 Picket', unit: 'EA', stock: 280, reorder: 200, cost: 4.25, markedUp: 7.50, supplier: 'Northeast Lumber' },
+    { id: 'm3', name: 'White Vinyl 6\' Panel', unit: 'EA', stock: 18, reorder: 25, cost: 145, markedUp: 235.00, supplier: 'Master Halco' },
+    { id: 'm4', name: 'Aluminum Picket 4\'', unit: 'EA', stock: 55, reorder: 40, cost: 78, markedUp: 125.00, supplier: 'Specrail' },
+    { id: 'm5', name: 'Concrete 80lb Bag', unit: 'BAG', stock: 240, reorder: 100, cost: 6.40, markedUp: 12.00, supplier: 'Home Depot Pro' },
+    { id: 'm6', name: 'Galvanized 3" Screws', unit: 'BOX', stock: 12, reorder: 8, cost: 32, markedUp: 55.00, supplier: 'Fastenal' },
+    { id: 'm7', name: 'Chain Link 4\' Roll', unit: 'ROLL', stock: 8, reorder: 6, cost: 220, markedUp: 365.00, supplier: 'Master Halco' },
+    { id: 'm8', name: 'Pool Code Gate Latch', unit: 'EA', stock: 6, reorder: 10, cost: 68, markedUp: 110.00, supplier: 'D&D Technologies' },
   ];
 
   const j = (id, customer, addr, town, status, value, service, priority, schedule, crew, tags = {}) => ({
@@ -2646,7 +2663,7 @@ const App = {
     const m = State.materials.find(m => m.id === id);
     if (!m) return;
     if (field === 'stock' || field === 'reorder') value = Math.max(0, Math.round(Number(value) || 0));
-    if (field === 'cost') value = Math.max(0, parseFloat(Number(value).toFixed(2)) || 0);
+    if (field === 'cost' || field === 'markedUp') value = Math.max(0, parseFloat(Number(value).toFixed(2)) || 0);
     m[field] = value;
     m._updatedAt = Date.now();
     persist();
@@ -2684,12 +2701,28 @@ const App = {
     const stats = document.getElementById('invStats');
     if (stats && Views.inventoryStats) stats.innerHTML = Views.inventoryStats();
     State.materials.forEach(m => {
+      const stock = Number(m.stock) || 0;
+      const cost = Number(m.cost) || 0;
+      const markedUp = Number(m.markedUp) || 0;
+      const reorder = Number(m.reorder) || 0;
+      // Total stock × cost
       const valEl = document.getElementById('invVal_' + m.id);
-      if (valEl) valEl.textContent = fmt.money((Number(m.stock)||0) * (Number(m.cost)||0));
+      if (valEl) valEl.textContent = fmt.money(stock * cost);
+      // Total stock × markedUp (customer value)
+      const custEl = document.getElementById('invCust_' + m.id);
+      if (custEl) custEl.textContent = fmt.money(stock * markedUp);
+      // Margin display
+      const marginEl = document.getElementById('invMargin_' + m.id);
+      if (marginEl) {
+        const pct = cost > 0 ? Math.round(((markedUp - cost) / cost) * 100) : 0;
+        const dollars = (markedUp - cost).toFixed(2);
+        marginEl.textContent = `+${pct}%  ($${dollars}/${m.unit || 'ea'})`;
+        marginEl.style.color = pct >= 30 ? 'var(--green)' : pct >= 10 ? 'var(--amber)' : 'var(--red)';
+      }
       const stEl = document.getElementById('invStatus_' + m.id);
       if (stEl) {
-        const status = m.stock < m.reorder ? 'overdue' : m.stock < m.reorder * 1.5 ? 'sent' : 'paid';
-        const label = m.stock < m.reorder ? 'Reorder' : m.stock < m.reorder * 1.5 ? 'Low' : 'Healthy';
+        const status = stock < reorder ? 'overdue' : stock < reorder * 1.5 ? 'sent' : 'paid';
+        const label = stock < reorder ? 'Reorder' : stock < reorder * 1.5 ? 'Low' : 'Healthy';
         stEl.className = 'doc-status ' + status;
         stEl.textContent = label;
       }
@@ -3862,14 +3895,16 @@ const Views = {
   inventoryStats() {
     const mats = State.materials;
     const totalItems = mats.length;
-    const totalValue = mats.reduce((a, m) => a + (Number(m.stock)||0) * (Number(m.cost)||0), 0);
+    const inventoryCost = mats.reduce((a, m) => a + (Number(m.stock)||0) * (Number(m.cost)||0), 0);
+    const customerValue = mats.reduce((a, m) => a + (Number(m.stock)||0) * (Number(m.markedUp)||0), 0);
+    const projectedProfit = customerValue - inventoryCost;
     const needReorder = mats.filter(m => m.stock < m.reorder).length;
-    const suppliers = new Set(mats.map(m => m.supplier).filter(Boolean)).size;
     return `
       ${this.kpi('Total SKUs', totalItems, 'items in inventory', 'up', 'materials')}
-      ${this.kpi('Inventory Value', fmt.money(totalValue), 'sum of stock × cost', 'up', 'dollar')}
+      ${this.kpi('Inventory Cost', fmt.money(inventoryCost), 'stock × unit cost', 'up', 'dollar')}
+      ${this.kpi('Customer Value', fmt.money(customerValue), 'stock × marked-up price', 'up', 'trend')}
+      ${this.kpi('Projected Profit', fmt.money(projectedProfit), `if all sold today`, projectedProfit > 0 ? 'up' : 'down', 'check')}
       ${this.kpi('Need Reorder', needReorder, needReorder ? 'below threshold' : 'all healthy', needReorder ? 'down' : 'up', 'alert')}
-      ${this.kpi('Suppliers', suppliers, 'active vendors', 'up', 'briefcase')}
     `;
   },
 
@@ -3909,13 +3944,18 @@ const Views = {
     const stock = Number(m.stock) || 0;
     const reorder = Number(m.reorder) || 0;
     const cost = Number(m.cost) || 0;
-    const totalValue = stock * cost;
+    const markedUp = Number(m.markedUp) || 0;
+    const totalCost = stock * cost;
+    const totalCustomer = stock * markedUp;
     const status = stock < reorder ? 'overdue' : stock < reorder * 1.5 ? 'sent' : 'paid';
     const statusLabel = stock < reorder ? 'Reorder' : stock < reorder * 1.5 ? 'Low' : 'Healthy';
     const lowness = stock < reorder ? 'critical' : stock < reorder * 1.5 ? 'low' : '';
     const ratio = Math.min(100, (stock / Math.max(reorder * 2, 1)) * 100);
     const updated = m._updatedAt ? fmt.rel(m._updatedAt) : '—';
     const units = ['EA','LF','BAG','BOX','ROLL','SHEET','GAL','LB'];
+    const markupPct = cost > 0 ? Math.round(((markedUp - cost) / cost) * 100) : 0;
+    const marginDollars = (markedUp - cost).toFixed(2);
+    const marginColor = markupPct >= 30 ? 'var(--green)' : markupPct >= 10 ? 'var(--amber)' : 'var(--red)';
 
     return `
       <div class="inv-card" id="invCard_${m.id}">
@@ -3954,19 +3994,32 @@ const Views = {
                    onchange="App.updateMaterial('${m.id}', 'reorder', this.value)" />
           </div>
           <div class="field">
-            <label>Unit Cost ($)</label>
-            <input type="number" min="0" step="0.01" value="${cost.toFixed(2)}"
-                   onchange="App.updateMaterial('${m.id}', 'cost', this.value)" />
-          </div>
-          <div class="field">
             <label>Supplier</label>
             <input type="text" value="${escHtml(m.supplier || '')}"
                    onchange="App.updateMaterial('${m.id}', 'supplier', this.value)"
                    placeholder="Vendor name" />
           </div>
           <div class="field">
-            <label>Total Value</label>
-            <div class="inv-total" id="invVal_${m.id}">${fmt.money(totalValue)}</div>
+            <label>Unit Cost ($)</label>
+            <input type="number" min="0" step="0.01" value="${cost.toFixed(2)}"
+                   onchange="App.updateMaterial('${m.id}', 'cost', this.value)" />
+          </div>
+          <div class="field">
+            <label>Unit Marked Up ($) <span style="color:var(--gold-deep);">→ customer</span></label>
+            <input type="number" min="0" step="0.01" value="${markedUp.toFixed(2)}"
+                   class="inv-markup-input"
+                   onchange="App.updateMaterial('${m.id}', 'markedUp', this.value)" />
+            <div class="inv-margin" id="invMargin_${m.id}" style="color:${marginColor};">
+              +${markupPct}%  ($${marginDollars}/${m.unit || 'ea'})
+            </div>
+          </div>
+          <div class="field">
+            <label>Cost Total</label>
+            <div class="inv-total" id="invVal_${m.id}">${fmt.money(totalCost)}</div>
+          </div>
+          <div class="field">
+            <label>Customer Total</label>
+            <div class="inv-total inv-total-customer" id="invCust_${m.id}">${fmt.money(totalCustomer)}</div>
           </div>
         </div>
 
